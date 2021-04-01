@@ -17,6 +17,16 @@ os.environ["no_proxy"] = "127.0.0.1,localhost"
 BASE_URL = "https://m.tiktok.com/"
 
 
+def parse_script_tag_contents(html):
+    nonce_start = '<head nonce="'
+    nonce_end = '">'
+    nonce = html.split(nonce_start)[1].split(nonce_end)[0]
+    j_raw = html.split(
+        '<script id="__NEXT_DATA__" type="application/json" nonce="%s" crossorigin="anonymous">' % nonce
+    )[1].split("</script>")[0]
+    return j_raw
+
+
 class TikTokApi:
     __instance = None
 
@@ -870,9 +880,8 @@ class TikTokApi:
             cookies=self.get_cookies(**kwargs),
         )
         t = r.text
-        j_raw = t.split(
-            '<script id="__NEXT_DATA__" type="application/json" crossorigin="anonymous">'
-        )[1].split("</script>")[0]
+        j_raw = parse_script_tag_contents(t)
+        
         return json.loads(j_raw)["props"]["pageProps"]["musicInfo"]
 
     def by_hashtag(self, hashtag, count=30, offset=0, **kwargs) -> dict:
@@ -1104,9 +1113,7 @@ class TikTokApi:
 
         t = r.text
         try:
-            j_raw = t.split(
-                '<script id="__NEXT_DATA__" type="application/json" crossorigin="anonymous">'
-            )[1].split("</script>")[0]
+            j_raw = parse_script_tag_contents(t)
         except IndexError:
             if not t:
                 logging.error("TikTok response is empty")
@@ -1206,9 +1213,7 @@ class TikTokApi:
         t = r.text
 
         try:
-            j_raw = t.split(
-                '<script id="__NEXT_DATA__" type="application/json" crossorigin="anonymous">'
-            )[1].split("</script>")[0]
+            j_raw = parse_script_tag_contents(t)
         except IndexError:
             if not t:
                 logging.error("Tiktok response is empty")
@@ -1563,9 +1568,7 @@ class TikTokApi:
             cookies=self.get_cookies(**kwargs),
         )
         t = r.text
-        j_raw = t.split(
-            '<script id="__NEXT_DATA__" type="application/json" crossorigin="anonymous">'
-        )[1].split("</script>")[0]
+        j_raw = parse_script_tag_contents(t)
 
         music_object = json.loads(j_raw)["props"]["pageProps"]["musicInfo"]
         if not music_object.get("title", None):
