@@ -41,7 +41,7 @@ class browser:
         self.executablePath = kwargs.get("executablePath", None)
         self.did = kwargs.get("custom_did", None)
         find_redirect = kwargs.get("find_redirect", False)
-
+        browser_type = kwargs.get("browser_type", "webkit")
         args = kwargs.get("browser_args", [])
         options = kwargs.get("browser_options", {})
 
@@ -75,7 +75,7 @@ class browser:
             self.options["executablePath"] = self.executablePath
 
         try:
-            self.browser = get_playwright().webkit.launch(
+            self.browser = getattr(get_playwright(), browser_type).launch(
                 args=self.args, **self.options
             )
         except Exception as e:
