@@ -24,7 +24,8 @@ class browser:
         self.language = kwargs.get("language", "en")
         self.executablePath = kwargs.get("executablePath", "chromedriver")
         self.did = kwargs.get("custom_did", None)
-
+        self.pre_script = kwargs.get("browser_pre_script", '')
+        
         args = kwargs.get("browser_args", [])
         options = kwargs.get("browser_options", {})
 
@@ -170,7 +171,10 @@ class browser:
                 + verifyFp
                 + """&did="""
                 + did
-                + """"
+                + '''";
+            
+        ''' + self.pre_script + """
+
         var token = window.byted_acrawler.sign({url: url});
         return token;
         """

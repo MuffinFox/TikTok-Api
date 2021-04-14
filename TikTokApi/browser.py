@@ -40,6 +40,7 @@ class browser:
         self.language = kwargs.get("language", "en")
         self.executablePath = kwargs.get("executablePath", None)
         self.did = kwargs.get("custom_did", None)
+        self.pre_script = kwargs.get("browser_pre_script", '')
         find_redirect = kwargs.get("find_redirect", False)
         browser_type = kwargs.get("browser_type", "webkit")
         args = kwargs.get("browser_args", [])
@@ -193,7 +194,9 @@ class browser:
             + verifyFp
             + """&did="""
             + did
-            + """"
+            + '''";
+            
+            ''' + self.pre_script + """
             var token = window.byted_acrawler.sign({url: url});
             return token;
             }"""
