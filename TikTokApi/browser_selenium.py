@@ -35,6 +35,9 @@ class browser:
             self.args = args
 
         options = webdriver.ChromeOptions()
+        for arg in self.args:
+            options.add_argument(arg)
+        
         options.add_argument("--headless")
         options.add_argument("log-level=2")
         self.options = {
