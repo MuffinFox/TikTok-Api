@@ -245,7 +245,8 @@ class TikTokApi:
                 verifyFp=kwargs.get("custom_verifyFp", verifyFp),
             )
 
-        query = {"verifyFp": verify_fp, "did": did, "_signature": signature}
+        #query = {"verifyFp": verify_fp, "did": did, "_signature": signature}
+        query = {}
         url = "{}&{}".format(kwargs["url"], urlencode(query))
         r = requests.get(
             url,
