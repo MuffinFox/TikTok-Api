@@ -880,7 +880,11 @@ class TikTokApi:
             cookies=self.get_cookies(**kwargs),
         )
         t = r.text
-        j_raw = parse_script_tag_contents(t)
+
+        try:
+            j_raw = parse_script_tag_contents(t)
+        except:
+            print(t)
         
         music_info = json.loads(j_raw)["props"]["pageProps"]["musicInfo"]
 
