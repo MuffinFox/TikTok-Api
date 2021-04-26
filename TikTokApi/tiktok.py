@@ -882,7 +882,12 @@ class TikTokApi:
         t = r.text
         j_raw = parse_script_tag_contents(t)
         
-        return json.loads(j_raw)["props"]["pageProps"]["musicInfo"]
+        music_info = json.loads(j_raw)["props"]["pageProps"]["musicInfo"]
+
+        if not music_info['music'].get('title'):
+            print(j_raw)
+
+        return music_info
 
     def by_hashtag(self, hashtag, count=30, offset=0, **kwargs) -> dict:
         """Returns a dictionary listing TikToks with a specific hashtag.
