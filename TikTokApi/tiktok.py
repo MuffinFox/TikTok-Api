@@ -883,14 +883,17 @@ class TikTokApi:
 
         try:
             j_raw = parse_script_tag_contents(t)
-        except:
-            print(t)
+        except IndexError:
+            if not t:
+                logging.error("TikTok response is empty")
+            else:
+                logging.error("TikTok response: \n " + t)
+            raise TikTokCaptchaError()
         
         music_info = json.loads(j_raw)["props"]["pageProps"]["musicInfo"]
 
         if not music_info.get('music', {}).get('title'):
-            print(j_raw)
-
+            logging.error("Empty music, TikTok response: \n " + t)
         return music_info
 
     def by_hashtag(self, hashtag, count=30, offset=0, **kwargs) -> dict:
