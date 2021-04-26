@@ -893,7 +893,7 @@ class TikTokApi:
         music_info = json.loads(j_raw)["props"]["pageProps"]["musicInfo"]
 
         if not music_info.get('music', {}).get('title'):
-            logging.error("Empty music, TikTok response: \n " + t)
+            logging.error("Empty music, TikTok response: \n " + j_raw)
         return music_info
 
     def by_hashtag(self, hashtag, count=30, offset=0, **kwargs) -> dict:
