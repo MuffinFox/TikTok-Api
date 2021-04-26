@@ -888,7 +888,7 @@ class TikTokApi:
         
         music_info = json.loads(j_raw)["props"]["pageProps"]["musicInfo"]
 
-        if not music_info['music'].get('title'):
+        if not music_info.get('music', {}).get('title'):
             print(j_raw)
 
         return music_info
