@@ -866,8 +866,9 @@ class TikTokApi:
             maxCount,
             did,
         ) = self.__process_kwargs__(kwargs)
+        url = "https://www.tiktok.com/music/-{}".format(id)
         r = requests.get(
-            "https://www.tiktok.com/music/-{}".format(id),
+            url,
             headers={
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
                 "authority": "www.tiktok.com",
@@ -893,7 +894,8 @@ class TikTokApi:
         music_info = json.loads(j_raw)["props"]["pageProps"]["musicInfo"]
 
         if not music_info.get('music', {}).get('title'):
-            logging.error("Empty music, TikTok response: \n " + j_raw)
+            raise EmptyResponseError('Empty response for url {}'.format(url))
+            
         return music_info
 
     def by_hashtag(self, hashtag, count=30, offset=0, **kwargs) -> dict:
