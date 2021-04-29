@@ -18,9 +18,15 @@ BASE_URL = "https://m.tiktok.com/"
 
 
 def parse_script_tag_contents(html):
-    nonce_start = '<head nonce="'
-    nonce_end = '">'
-    nonce = html.split(nonce_start)[1].split(nonce_end)[0]
+    try:
+        nonce_start = '<head nonce="'
+        nonce_end = '">'
+        nonce = html.split(nonce_start)[1].split(nonce_end)[0]
+    except:
+        nonce_start = '<script nonce="'
+        nonce_end = '">'
+        nonce = html.split(nonce_start)[1].split(nonce_end)[0]
+    
     j_raw = html.split(
         '<script id="__NEXT_DATA__" type="application/json" nonce="%s" crossorigin="anonymous">' % nonce
     )[1].split("</script>")[0]
