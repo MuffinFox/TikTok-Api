@@ -835,8 +835,11 @@ class TikTokApi:
                 for t in res["items"]:
                     response.append(t)
             except KeyError:
-                for t in res["itemList"]:
-                    response.append(t)
+                try:
+                    for t in res["itemList"]:
+                        response.append(t)
+                except KeyError:
+                    pass
 
             if not res["hasMore"]:
                 logging.info("TikTok isn't sending more TikToks beyond this point.")
