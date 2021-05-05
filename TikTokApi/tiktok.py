@@ -3,6 +3,7 @@ import requests
 import time
 import logging
 import json
+from bs4 import BeautifulSoup
 from urllib.parse import urlencode, quote
 from playwright.sync_api import sync_playwright
 import string
@@ -18,20 +19,7 @@ BASE_URL = "https://m.tiktok.com/"
 
 
 def parse_script_tag_contents(html):
-    try:
-        nonce_start = '<head nonce="'
-        nonce_end = '">'
-        nonce = html.split(nonce_start)[1].split(nonce_end)[0]
-    except:
-        nonce_start = '<script nonce="'
-        nonce_end = '">'
-        nonce = html.split(nonce_start)[1].split(nonce_end)[0]
-    
-    j_raw = html.split(
-        '<script id="__NEXT_DATA__" type="application/json" nonce="%s" crossorigin="anonymous">' % nonce
-    )[1].split("</script>")[0]
-    return j_raw
-
+    return bs.find('script', id='__NEXT_DATA__').string
 
 class TikTokApi:
     __instance = None
