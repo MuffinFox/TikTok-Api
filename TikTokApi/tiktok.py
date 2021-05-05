@@ -892,7 +892,7 @@ class TikTokApi:
         music_info = json.loads(j_raw)["props"]["pageProps"]["musicInfo"]
 
         if not music_info.get('music', {}).get('title'):
-            raise EmptyResponseError('Empty response for url {}'.format(url))
+            raise EmptyResponseError('Empty response for url {}: {}'.format(url, music_info))
             
         return music_info
 
