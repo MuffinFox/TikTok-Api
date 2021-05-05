@@ -19,6 +19,7 @@ BASE_URL = "https://m.tiktok.com/"
 
 
 def parse_script_tag_contents(html):
+    bs = BeautifulSoup(html, 'html.parser')
     return bs.find('script', id='__NEXT_DATA__').string
 
 class TikTokApi:
