@@ -881,7 +881,7 @@ class TikTokApi:
 
         try:
             j_raw = parse_script_tag_contents(t)
-        except IndexError:
+        except:
             if not t:
                 logging.error("TikTok response is empty")
             else:
@@ -1125,7 +1125,7 @@ class TikTokApi:
         t = r.text
         try:
             j_raw = parse_script_tag_contents(t)
-        except IndexError:
+        except:
             if not t:
                 logging.error("TikTok response is empty")
             else:
@@ -1225,7 +1225,7 @@ class TikTokApi:
 
         try:
             j_raw = parse_script_tag_contents(t)
-        except IndexError:
+        except:
             if not t:
                 logging.error("Tiktok response is empty")
             else:
