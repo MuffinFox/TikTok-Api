@@ -780,6 +780,41 @@ class TikTokApi:
             **kwargs,
         )
 
+    def by_sound_page(self, id, page_size=30, cursor=0, **kwargs) -> dict:
+        """Returns a dictionary listing TikToks with a specific sound.
+
+        Parameters
+        ----------
+        id: The sound id to search by
+            Note: Can be found in the URL of the sound specific page or with other methods.
+        offset:
+        count: The number of posts to return
+            Note: seems to only support up to ~2,000
+        """
+        (
+            region,
+            language,
+            proxy,
+            maxCount,
+            did,
+        ) = self.__process_kwargs__(kwargs)
+        kwargs["custom_did"] = did
+        response = []
+
+        query = {
+            "secUid": "",
+            "musicID": str(id),
+            "count": str(page_size),
+            "cursor": cursor,
+            "shareUid": "",
+            "language": language,
+        }
+        api_url = "{}api/music/item_list/?{}&{}".format(
+            BASE_URL, self.__add_new_params__(), urlencode(query)
+        )
+
+        return self.get_data(url=api_url, **kwargs)
+
     def by_sound(self, id, count=30, offset=0, **kwargs) -> dict:
         """Returns a dictionary listing TikToks with a specific sound.
 
@@ -848,6 +883,23 @@ class TikTokApi:
             This can be found by using other methods.
         """
         return self.getMusicObjectFull(id, **kwargs)["music"]
+
+
+    def get_music_object_full_by_api(self, id, **kwargs):
+        (
+            region,
+            language,
+            proxy,
+            maxCount,
+            did,
+        ) = self.__process_kwargs__(kwargs)
+        kwargs["custom_did"] = did
+
+        api_url = "{}node/share/music/-{}?{}".format(
+            BASE_URL, id, self.__add_new_params__()
+        )
+        res = self.get_data(url=api_url, **kwargs)
+        return res['musicInfo']
 
     def get_music_object_full(self, id, **kwargs):
         """Returns a music object for a specific sound id.
