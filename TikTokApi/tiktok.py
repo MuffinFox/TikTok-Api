@@ -261,6 +261,10 @@ class TikTokApi:
                 "sec-fetch-mode": "cors",
                 "sec-fetch-site": "same-site",
                 "user-agent": userAgent,
+                "x-secsdk-csrf-token": "".join(
+                    random.choice(string.ascii_uppercase + string.ascii_lowercase)
+                    for i in range(53))
+
             },
             cookies=self.get_cookies(**kwargs),
             proxies=self.__format_proxy(proxy),
