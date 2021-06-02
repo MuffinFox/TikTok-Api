@@ -263,7 +263,7 @@ class TikTokApi:
                 "user-agent": userAgent,
                 "x-secsdk-csrf-token": "".join(
                     random.choice(string.ascii_uppercase + string.ascii_lowercase)
-                    for i in range(53))
+                    for i in range(92))
 
             },
             cookies=self.get_cookies(**kwargs),
