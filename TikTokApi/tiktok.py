@@ -47,7 +47,8 @@ class TikTokApi:
         self.custom_verifyFp = kwargs.get("custom_verifyFp")
         self.signer_url = kwargs.get("external_signer", None)
         self.request_delay = kwargs.get("request_delay", None)
-
+        self.requests_extra_kwargs = kwargs.get("requests_extra_kwargs", {}) 
+        
         if kwargs.get("use_test_endpoints", False):
             global BASE_URL
             BASE_URL = "https://t.tiktok.com/"
