@@ -294,6 +294,12 @@ class TikTokApi:
                 raise TikTokNotFoundError(
                     "TikTok returned a response indicating the entity is invalid"
                 )
+           if json.get("statusCode", 200) == 10219:
+                # not available in this region
+                raise TikTokNotAvailableError(
+                    "Content not available for this region"
+                )
+
             return r.json()
         except ValueError as e:
             text = r.text
