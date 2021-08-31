@@ -294,7 +294,7 @@ class TikTokApi:
                 raise TikTokNotFoundError(
                     "TikTok returned a response indicating the entity is invalid"
                 )
-           if json.get("statusCode", 200) == 10219:
+            if json.get("statusCode", 200) == 10219:
                 # not available in this region
                 raise TikTokNotAvailableError(
                     "Content not available for this region"
@@ -923,6 +923,10 @@ class TikTokApi:
             BASE_URL, id, self.__add_new_params__()
         )
         res = self.get_data(url=api_url, **kwargs)
+
+        if res.get("statusCode", 200) == 10203:
+            raise TikTokNotFoundError()
+
         return res['musicInfo']
 
     def get_music_object_full(self, id, **kwargs):
