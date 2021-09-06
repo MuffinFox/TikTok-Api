@@ -336,10 +336,7 @@ class TikTokApi:
                     for i in range(32)
                 ),
                 "s_v_web_id": verifyFp,
-                "ttwid": "".join(
-                    random.choice(string.ascii_uppercase + string.ascii_lowercase)
-                    for i in range(127)
-                ),
+                "ttwid": "1|rum7w__fnGmymipRUcvHzMSI_lynLsKJAQ1vVaIsANo|1630961985|ac7d1fcdb82662b282a3482b62ec1d565319da56394fc4f53a88ee86f3ca8496"
             }
         else:
             return {
@@ -350,10 +347,7 @@ class TikTokApi:
                     random.choice(string.ascii_uppercase + string.ascii_lowercase)
                     for i in range(32)
                 ),
-                "ttwid": "".join(
-                    random.choice(string.ascii_uppercase + string.ascii_lowercase)
-                    for i in range(127)
-                ),
+                "ttwid": "1|rum7w__fnGmymipRUcvHzMSI_lynLsKJAQ1vVaIsANo|1630961985|ac7d1fcdb82662b282a3482b62ec1d565319da56394fc4f53a88ee86f3ca8496"
             }
 
     def get_bytes(self, **kwargs) -> bytes:
