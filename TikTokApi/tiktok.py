@@ -336,6 +336,10 @@ class TikTokApi:
                     for i in range(32)
                 ),
                 "s_v_web_id": verifyFp,
+                "ttwid": "".join(
+                    random.choice(string.ascii_uppercase + string.ascii_lowercase)
+                    for i in range(127)
+                ),
             }
         else:
             return {
@@ -345,6 +349,10 @@ class TikTokApi:
                 "tt_csrf_token": "".join(
                     random.choice(string.ascii_uppercase + string.ascii_lowercase)
                     for i in range(32)
+                ),
+                "ttwid": "".join(
+                    random.choice(string.ascii_uppercase + string.ascii_lowercase)
+                    for i in range(127)
                 ),
             }
 
