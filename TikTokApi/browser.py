@@ -106,7 +106,7 @@ class browser:
         self.height = page.evaluate("""() => { return screen.height; }""")
 
     def create_context(self, set_useragent=False):
-        iphone = playwright.devices["Nexus 5x"]
+        iphone = playwright.devices["Nexus 5X"]
         iphone["viewport"] = {
             "width": random.randint(320, 1920),
             "height": random.randint(320, 1920),
