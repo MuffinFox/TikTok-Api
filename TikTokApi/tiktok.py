@@ -338,6 +338,12 @@ class TikTokApi:
         else:
             ttwid = kwargs.get("ttwid")
 
+        ttwid_cookie = {}
+        if kwargs.get("force_ttwid_on_cookie_header", False):
+            ttwid_cookie = {
+                "ttwid": ttwid
+            }
+
         if kwargs.get("force_verify_fp_on_cookie_header", False):
             return {
                 "tt_webid": did,
@@ -348,7 +354,7 @@ class TikTokApi:
                     for i in range(32)
                 ),
                 "s_v_web_id": verifyFp,
-                "ttwid": ttwid
+                **ttwid_cookie
             }
         else:
             return {
@@ -359,7 +365,7 @@ class TikTokApi:
                     random.choice(string.ascii_uppercase + string.ascii_lowercase)
                     for i in range(32)
                 ),
-                "ttwid": ttwid
+                **ttwid_cookie
             }
 
     def get_bytes(self, **kwargs) -> bytes:
