@@ -45,6 +45,7 @@ class TikTokApi:
         )
         self.proxy = kwargs.get("proxy", None)
         self.custom_verifyFp = kwargs.get("custom_verifyFp")
+        self.ttwid = kwargs.get("ttwid", None) 
         self.signer_url = kwargs.get("external_signer", None)
         self.request_delay = kwargs.get("request_delay", None)
         self.requests_extra_kwargs = kwargs.get("requests_extra_kwargs", {}) 
@@ -229,6 +230,9 @@ class TikTokApi:
         else:
             verifyFp = kwargs.get("custom_verifyFp")
 
+        if kwargs.get('ttwid') == None:
+            kwargs['ttwid'] = self.ttwid
+
         if self.signer_url is None:
             kwargs["custom_verifyFp"] = verifyFp
             verify_fp, did, signature = self.browser.sign_url(**kwargs)
@@ -326,6 +330,14 @@ class TikTokApi:
         else:
             verifyFp = kwargs.get("custom_verifyFp")
 
+        if kwargs.get("ttwid") == None:
+            ttwid = "".join(
+                random.choice(string.ascii_uppercase + string.ascii_lowercase)
+                for i in range(127)
+            )
+        else:
+            ttwid = kwargs.get("ttwid")
+
         if kwargs.get("force_verify_fp_on_cookie_header", False):
             return {
                 "tt_webid": did,
@@ -336,7 +348,7 @@ class TikTokApi:
                     for i in range(32)
                 ),
                 "s_v_web_id": verifyFp,
-                "ttwid": "1|rum7w__fnGmymipRUcvHzMSI_lynLsKJAQ1vVaIsANo|1630961985|ac7d1fcdb82662b282a3482b62ec1d565319da56394fc4f53a88ee86f3ca8496"
+                "ttwid": ttwid
             }
         else:
             return {
@@ -347,7 +359,7 @@ class TikTokApi:
                     random.choice(string.ascii_uppercase + string.ascii_lowercase)
                     for i in range(32)
                 ),
-                "ttwid": "1|rum7w__fnGmymipRUcvHzMSI_lynLsKJAQ1vVaIsANo|1630961985|ac7d1fcdb82662b282a3482b62ec1d565319da56394fc4f53a88ee86f3ca8496"
+                "ttwid": ttwid
             }
 
     def get_bytes(self, **kwargs) -> bytes:
