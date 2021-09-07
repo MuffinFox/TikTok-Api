@@ -115,7 +115,7 @@ class browser:
         iphone["is_mobile"] = random.randint(1, 2) == 1
         iphone["has_touch"] = random.randint(1, 2) == 1
 
-        context = self.browser.new_context()
+        context = self.browser.new_context(**iphone)
         if set_useragent:
             self.userAgent = iphone["user_agent"]
 
