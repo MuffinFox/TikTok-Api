@@ -675,7 +675,7 @@ class TikTokApi:
 
         api_url = (
             BASE_URL + "api/post/item_list/?{}&count={}&id={}&type=1&secUid={}"
-            "&cursor={}&sourceType=8&appId=1233&region={}&language={}".format(
+            "&cursor={}&sourceType=8&appId=1233&region={}&language={}&msToken={}&X-Bogus={}".format(
                 self.__add_new_params__(),
                 page_size,
                 str(userID),
@@ -683,6 +683,8 @@ class TikTokApi:
                 cursor,
                 region,
                 language,
+                'wXB5sisjt1qXXjyHxh7gIxw8XAjnvCNLnNxWGjvq5ZIdhP1hQZEJIDt3unW3ZYwMjLtWV7d-icEDS3LG4HpnFRrkXfHnikCwSH9vuMULZ9P7gaLTMD08Q5s2o0Y1y8HrIVAjQ==',
+                'DFSzsIVu7Z0ANCLnSY0edPlLvAmw'
             )
         )
 
