@@ -164,11 +164,7 @@ class browser:
 
         return f'verify_{scenario_title.lower()}_{"".join(uuid)}'
 
-<<<<<<< HEAD
-    def sign_url(self, **kwargs):
-=======
     def sign_url(self, calc_tt_params=False, **kwargs):
->>>>>>> signer_improvements
         def process(route):
             route.abort()
 
@@ -180,14 +176,9 @@ class browser:
         context = self.create_context()
         page = context.new_page()
 
-<<<<<<< HEAD
-        page.route(re.compile(r"(\.png)|(\.jpeg)|(\.mp4)|(x-expire)"), process)
-        page.goto(kwargs.get('default_url', 'https://www.tiktok.com/@redbull'), wait_until='load')
-=======
         if calc_tt_params:
             page.route(re.compile(r"(\.png)|(\.jpeg)|(\.mp4)|(x-expire)"), process)
             page.goto(kwargs.get('default_url', 'https://www.tiktok.com/@redbull'), wait_until='load')
->>>>>>> signer_improvements
 
         verifyFp = "".join(
             random.choice(
