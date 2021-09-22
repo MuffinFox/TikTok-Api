@@ -231,9 +231,11 @@ class TikTokApi:
             verifyFp = kwargs.get("custom_verifyFp")
 
         tt_params = None
+        send_tt_params = kwargs.get("send_tt_params", False)
+
         if self.signer_url is None:
             kwargs["custom_verifyFp"] = verifyFp
-            verify_fp, device_id, signature, tt_params = self.browser.sign_url(**kwargs)
+            verify_fp, device_id, signature, tt_params = self.browser.sign_url(calc_tt_params=send_tt_params, **kwargs)
             userAgent = self.browser.userAgent
             referrer = self.browser.referrer
         else:
@@ -242,10 +244,6 @@ class TikTokApi:
                 custom_device_id=kwargs.get("custom_device_id"),
                 verifyFp=kwargs.get("custom_verifyFp", verifyFp),
             )
-
-        if not kwargs.get("send_tt_params", False):
-            tt_params = None
-
 
         query = {"verifyFp": verify_fp, "device_id": device_id, "_signature": signature}
         url = "{}&{}".format(kwargs["url"], urlencode(query))
@@ -365,7 +363,7 @@ class TikTokApi:
         ) = self.__process_kwargs__(kwargs)
         kwargs["custom_device_id"] = device_id
         if self.signer_url is None:
-            verify_fp, device_id, signature = self.browser.sign_url(**kwargs)
+            verify_fp, device_id, signature, _ = self.browser.sign_url(calc_tt_params=False, **kwargs)
             userAgent = self.browser.userAgent
             referrer = self.browser.referrer
         else:
