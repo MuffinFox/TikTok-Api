@@ -227,9 +227,97 @@ class browser:
                 }'''
             )
 
-        context.close()
+        if not kwargs.get('keep_open'):
+            context.close()
+
         return (
             verifyFp,
+            device_id,
+            evaluatedPage,
+            tt_params,
+            page,
+            context
+        )
+
+    def sign_url_open_context(self, calc_tt_params=False, **kwargs):
+        def process(route):
+            route.abort()
+
+        url = kwargs.get("url", None)
+        if url is None:
+            raise Exception("sign_url required a url parameter")
+
+        tt_params = None
+        context = self.create_context()
+        page = context.new_page()
+
+        if calc_tt_params:
+            page.route(re.compile(r"(\.png)|(\.jpeg)|(\.mp4)|(x-expire)"), process)
+            page.goto(kwargs.get('default_url', 'https://www.tiktok.com/@redbull'), wait_until='load')
+
+        verifyFp = "".join(
+            random.choice(
+                string.ascii_lowercase + string.ascii_uppercase + string.digits
+            )
+            for i in range(16)
+        )
+        if kwargs.get("gen_new_verifyFp", False):
+            verifyFp = self.gen_verifyFp()
+        else:
+            verifyFp = kwargs.get(
+                "custom_verifyFp",
+                "verify_khgp4f49_V12d4mRX_MdCO_4Wzt_Ar0k_z4RCQC9pUDpX",
+            )
+
+        if kwargs.get("custom_device_id") is not None:
+            device_id = kwargs.get("custom_device_id", None)
+        elif self.device_id is None:
+            device_id = str(random.randint(10000, 999999999))
+        else:
+            device_id = self.device_id
+
+        url = '{}&verifyFp={}&device_id={}'.format(url, verifyFp, device_id)
+
+        page.add_script_tag(content=get_acrawler())
+
+        if calc_tt_params:
+            page.add_script_tag(content=get_tt_params_script())
+
+        return (
+            verifyFp,
+            device_id,
+            page,
+            context
+        )
+
+    def sign_url_open_page(self, url, verify_fp, device_id, page, calc_tt_params):
+
+        url = '{}&verifyFp={}&device_id={}'.format(url, verify_fp, device_id)
+
+        evaluatedPage = page.evaluate(
+            '''() => {
+            var url = "'''
+            + url
+            + """"
+            var token = window.byted_acrawler.sign({url: url});
+
+            return token;
+            }"""
+        )
+
+        url = '{}&_signature={}'.format(url, evaluatedPage)
+
+        if calc_tt_params:
+
+            tt_params = page.evaluate(
+                '''() => {
+                    return window.genXTTParams(''' + json.dumps(dict(parse_qsl(splitquery(url)[1]))) + ''');
+
+                }'''
+            )
+
+        return (
+            verify_fp,
             device_id,
             evaluatedPage,
             tt_params

@@ -202,6 +202,114 @@ class TikTokApi:
             parsed_data["referrer"],
         )
 
+    def get_data_open(self, **kwargs):
+        return self.browser.sign_url_open_context(calc_tt_params=kwargs.get('send_tt_params'),
+                                                  **kwargs)
+
+    def get_data_multi(self, **kwargs) -> dict:
+        """Makes requests to TikTok and returns their JSON.
+
+        This is all handled by the package so it's unlikely
+        you will need to use this.
+        """
+        (
+            region,
+            language,
+            proxy,
+            maxCount,
+            device_id,
+        ) = self.__process_kwargs__(kwargs)
+
+        if self.proxy is not None:
+            proxy = self.proxy
+
+        tt_params = None
+        send_tt_params = kwargs.get("send_tt_params", False)
+
+        if self.signer_url is None:
+            verify_fp, device_id, signature, tt_params, page, context = self.browser.sign_url_open_page(
+                page=kwargs.get('page'),
+                calc_tt_params=send_tt_params, **kwargs)
+            userAgent = self.browser.userAgent
+            referrer = self.browser.referrer
+
+        def query(url):
+            query = {"verifyFp": verify_fp, "device_id": device_id, "_signature": signature}
+            url = "{}&{}".format(url, urlencode(query))
+
+            h = requests.head(
+                url,
+                headers={"x-secsdk-csrf-version": "1.2.5", "x-secsdk-csrf-request": "1"},
+                proxies=self.__format_proxy(proxy),
+                **self.requests_extra_kwargs,
+            )
+            csrf_session_id = h.cookies["csrf_session_id"]
+            csrf_token = h.headers["X-Ware-Csrf-Token"].split(",")[1]
+            kwargs["csrf_session_id"] = csrf_session_id
+
+            r = requests.get(
+                url,
+                headers={
+                    "authority": "m.tiktok.com",
+                    "method": "GET",
+                    "path": url.split("tiktok.com")[1],
+                    "scheme": "https",
+                    "accept": "application/json, text/plain, */*",
+                    "accept-encoding": "gzip, deflate, br",
+                    "accept-language": "en-US,en;q=0.9",
+                    "origin": referrer,
+                    "referer": referrer,
+                    "sec-fetch-dest": "empty",
+                    "sec-fetch-mode": "cors",
+                    "sec-fetch-site": "same-site",
+                    "sec-gpc": "1",
+                    "user-agent": userAgent,
+                    "x-secsdk-csrf-token": csrf_token,
+                    "x-tt-params": tt_params
+                },
+                cookies=self.get_cookies(**kwargs),
+                proxies=self.__format_proxy(proxy),
+                **self.requests_extra_kwargs,
+            )
+            try:
+                json = r.json()
+                if (
+                        json.get("type") == "verify"
+                        or json.get("verifyConfig", {}).get("type", "") == "verify"
+                ):
+                    logging.error(
+                        "Tiktok wants to display a catcha. Response is:\n" + r.text
+                    )
+                    logging.error(self.get_cookies(**kwargs))
+                    raise TikTokCaptchaError()
+                if json.get("statusCode", 200) == 10201:
+                    # Invalid Entity
+                    raise TikTokNotFoundError(
+                        "TikTok returned a response indicating the entity is invalid"
+                    )
+                if json.get("statusCode", 200) == 10219:
+                    # not available in this region
+                    raise TikTokNotAvailableError(
+                        "Content not available for this region"
+                    )
+
+                return r.json()
+            except ValueError as e:
+                text = r.text
+                logging.error("TikTok response: " + text)
+                if len(text) == 0:
+                    raise EmptyResponseError(
+                        "Empty response from Tiktok to " + url
+                    ) from None
+                else:
+                    logging.error("Converting response to JSON failed")
+                    logging.error(e)
+                    raise JSONDecodeFailure() from e
+
+
+        return query(kwargs['url'])
+
+
     def get_data(self, **kwargs) -> dict:
         """Makes requests to TikTok and returns their JSON.
 
@@ -235,7 +343,7 @@ class TikTokApi:
 
         if self.signer_url is None:
             kwargs["custom_verifyFp"] = verifyFp
-            verify_fp, device_id, signature, tt_params = self.browser.sign_url(calc_tt_params=send_tt_params, **kwargs)
+            verify_fp, device_id, signature, tt_params, _, _ = self.browser.sign_url(calc_tt_params=send_tt_params, **kwargs)
             userAgent = self.browser.userAgent
             referrer = self.browser.referrer
         else:
@@ -838,6 +946,11 @@ class TikTokApi:
         kwargs["custom_device_id"] = device_id
         response = []
 
+        (verify_fp, device_id, page, context) = self.get_data_open(**kwargs)
+
+        kwargs['custom_verifyFp'] = verify_fp
+        kwargs['custom_device_id'] = device_id
+
         while len(response) < count:
             if count < maxCount:
                 realCount = count
@@ -856,7 +969,7 @@ class TikTokApi:
                 BASE_URL, self.__add_url_params__(), urlencode(query)
             )
 
-            res = self.get_data(url=api_url, send_tt_params=True, **kwargs)
+            res = self.get_data_multi(url=api_url, page=page, send_tt_params=True, **kwargs)
 
             try:
                 for t in res["items"]:
@@ -871,6 +984,8 @@ class TikTokApi:
 
             realCount = count - len(response)
             offset = res["cursor"]
+
+        context.close()
 
         return response[:count]
 
