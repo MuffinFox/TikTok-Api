@@ -1048,8 +1048,6 @@ class TikTokApi:
                     for t in res.get("itemList", []):
                         response.append(t)
 
-                logging.error('response {}'.format(response))
-
                 if not res.get("hasMore", False):
                     cursor = 0
                     logging.info("TikTok isn't sending more TikToks beyond this point.")
