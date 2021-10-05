@@ -1049,7 +1049,7 @@ class TikTokApi:
                         response.append(t)
 
                 if not res.get("hasMore", False):
-                    cursor = None
+                    cursor = 0
                     logging.info("TikTok isn't sending more TikToks beyond this point.")
                     break
 
@@ -1059,7 +1059,10 @@ class TikTokApi:
             logging.info('Fetched {} until {}'.format(len(response), cursor))
             raise e
         finally:
-            context.close()
+            try:
+                context.close()
+            except:
+                logging.warning('Could not close context')
 
         return {
             'itemList': response,
