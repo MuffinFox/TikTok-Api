@@ -226,7 +226,7 @@ class TikTokApi:
         tt_params = None
 
         if self.signer_url is None:
-            verify_fp, device_id, signature, tt_params, page, context = self.browser.sign_url_open_page(
+            verify_fp, device_id, signature, tt_params = self.browser.sign_url_open_page(
                 url=url,
                 page=page,
                 calc_tt_params=send_tt_params,
