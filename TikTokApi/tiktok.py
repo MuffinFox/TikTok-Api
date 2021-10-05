@@ -310,7 +310,7 @@ class TikTokApi:
                     raise JSONDecodeFailure() from e
 
 
-        return query(kwargs['url'])
+        return query(url)
 
 
     def get_data(self, **kwargs) -> dict:
