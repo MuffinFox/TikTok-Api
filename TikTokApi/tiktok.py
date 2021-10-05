@@ -206,7 +206,7 @@ class TikTokApi:
         return self.browser.sign_url_open_context(calc_tt_params=kwargs.get('send_tt_params'),
                                                   **kwargs)
 
-    def get_data_multi(self, **kwargs) -> dict:
+    def get_data_multi(self, url, verify_fp, device_id, page, send_tt_params=False, **kwargs) -> dict:
         """Makes requests to TikTok and returns their JSON.
 
         This is all handled by the package so it's unlikely
@@ -224,12 +224,15 @@ class TikTokApi:
             proxy = self.proxy
 
         tt_params = None
-        send_tt_params = kwargs.get("send_tt_params", False)
 
         if self.signer_url is None:
             verify_fp, device_id, signature, tt_params, page, context = self.browser.sign_url_open_page(
-                page=kwargs.get('page'),
-                calc_tt_params=send_tt_params, **kwargs)
+                url=url,
+                page=page,
+                calc_tt_params=send_tt_params,
+                device_id=device_id,
+                verify_fp=verify_fp
+            )
             userAgent = self.browser.userAgent
             referrer = self.browser.referrer
 
@@ -969,7 +972,8 @@ class TikTokApi:
                 BASE_URL, self.__add_url_params__(), urlencode(query)
             )
 
-            res = self.get_data_multi(url=api_url, page=page, send_tt_params=True, **kwargs)
+            res = self.get_data_multi(url=api_url, verify_fp=verify_fp, device_id=device_id,
+                                      page=page, send_tt_params=True, **kwargs)
 
             try:
                 for t in res["items"]:
