@@ -1047,7 +1047,7 @@ class TikTokApi:
                 except KeyError:
                     for t in res.get("itemList", []):
                         response.append(t)
-                
+
                 logging.error('response {}'.format(response))
 
                 if not res.get("hasMore", False):
@@ -1058,7 +1058,7 @@ class TikTokApi:
                 realCount = count - len(response)
                 cursor = res["cursor"]
         except Exception as e:
-            logging.error('Fetched {} until {}'.format(len(response), cursor))
+            logging.error('Fetched {} until {} because {}'.format(len(response), cursor, str(e)))
             raise e
         finally:
             try:
