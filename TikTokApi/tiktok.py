@@ -993,6 +993,78 @@ class TikTokApi:
 
         return response[:count]
 
+    def by_sound_batch(self, id, count=1000, cursor=0, **kwargs) -> dict:
+        """Returns a dictionary listing TikToks with a specific sound.
+
+        ##### Parameters
+        * id: The sound id to search by
+
+            Note: Can be found in the URL of the sound specific page or with other methods.
+        * count: The number of posts to return
+
+            Note: seems to only support up to ~2,000
+        """
+        (
+            region,
+            language,
+            proxy,
+            maxCount,
+            device_id,
+        ) = self.__process_kwargs__(kwargs)
+        kwargs["custom_device_id"] = device_id
+        response = []
+
+        (verify_fp, device_id, page, context) = self.get_data_open(send_tt_params=True, **kwargs)
+
+        kwargs['custom_verifyFp'] = verify_fp
+        kwargs['custom_device_id'] = device_id
+
+        try:
+            while len(response) < count:
+                if count < maxCount:
+                    realCount = count
+                else:
+                    realCount = maxCount
+
+                query = {
+                    "secUid": "",
+                    "musicID": str(id),
+                    "count": str(realCount),
+                    "cursor": cursor,
+                    "shareUid": "",
+                    "language": language,
+                }
+                api_url = "{}api/music/item_list/?{}&{}".format(
+                    BASE_URL, self.__add_url_params__(), urlencode(query)
+                )
+
+                res = self.get_data_multi(url=api_url, verify_fp=verify_fp, device_id=device_id,
+                                          page=page, send_tt_params=True, **kwargs)
+
+                try:
+                    for t in res["items"]:
+                        response.append(t)
+                except KeyError:
+                    for t in res.get("itemList", []):
+                        response.append(t)
+
+                if not res.get("hasMore", False):
+                    cursor = None
+                    logging.info("TikTok isn't sending more TikToks beyond this point.")
+                    break
+
+                realCount = count - len(response)
+                cursor = res["cursor"]
+        except Exception as e:
+            logging.info('Fetched {} until {}'.format(len(response), cursor))
+            raise e
+        finally:
+            context.close()
+
+        return {
+            'itemList': response,
+            'cursor': cursor
+        }
 
     def by_sound_page(self, id, page_size=30, cursor=0, **kwargs) -> dict:
         """Returns a page of tiktoks with a specific sound.
