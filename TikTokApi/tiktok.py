@@ -786,6 +786,92 @@ class TikTokApi:
 
         return self.get_data(url=api_url, send_tt_params=True, **kwargs)
 
+    def user_batch(self, userID, secUID, count=1000, cursor=0, **kwargs) -> dict:
+        """Returns a dictionary listing of one batch = several pages of TikToks given a user's ID and secUID
+
+        ##### Parameters
+        * userID: The userID of the user, which TikTok assigns
+
+            You can find this from utilizing other methods or
+            just use by_username to find it.
+        * secUID: The secUID of the user, which TikTok assigns
+
+            You can find this from utilizing other methods or
+            just use by_username to find it.
+        * count: The number of posts to return per call
+
+            Gets a specific page of a user, doesn't iterate.
+        * cursor: The offset of a page
+
+            The offset to return new videos from
+        """
+        (
+            region,
+            language,
+            proxy,
+            maxCount,
+            device_id,
+        ) = self.__process_kwargs__(kwargs)
+        kwargs["custom_device_id"] = device_id
+        response = []
+
+        (verify_fp, device_id, page, context) = self.get_data_open(send_tt_params=True, **kwargs)
+
+        kwargs['custom_verifyFp'] = verify_fp
+        kwargs['custom_device_id'] = device_id
+
+        try:
+            while len(response) < count:
+                if count < maxCount:
+                    realCount = count
+                else:
+                    realCount = maxCount
+
+                query = {
+                    "appId": 1233,
+                    "secUid": str(userID),
+                    "count": str(realCount),
+                    "cursor": cursor,
+                    "type": 1,
+                    "sourceType": 8,
+                    "region": region,
+                    "language": language,
+                }
+                api_url = "{}api/post/item_list/?{}&{}".format(
+                    BASE_URL, self.__add_url_params__(), urlencode(query)
+                )
+
+                res = self.get_data_multi(url=api_url, verify_fp=verify_fp, device_id=device_id,
+                                          page=page, send_tt_params=True, **kwargs)
+
+                try:
+                    for t in res["items"]:
+                        response.append(t)
+                except KeyError:
+                    for t in res.get("itemList", []):
+                        response.append(t)
+
+                if not res.get("hasMore", False):
+                    cursor = 0
+                    logging.info("TikTok isn't sending more TikToks beyond this point.")
+                    break
+
+                realCount = count - len(response)
+                cursor = res["cursor"]
+        except Exception as e:
+            logging.error('Fetched {} until {} because {}'.format(len(response), cursor, str(e)))
+            raise e
+        finally:
+            try:
+                context.close()
+            except:
+                logging.warning('Could not close context')
+
+        return {
+            'itemList': response,
+            'cursor': cursor
+        }
+
     def get_user_pager(self, username, page_size=30, cursor=0, **kwargs):
         """Returns a generator to page through a user's feed
 
