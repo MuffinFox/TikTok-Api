@@ -829,7 +829,7 @@ class TikTokApi:
 
                 query = {
                     "appId": 1233,
-                    "secUid": str(userID),
+                    "secUid": str(secUID),
                     "count": str(realCount),
                     "cursor": cursor,
                     "type": 1,
