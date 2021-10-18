@@ -249,7 +249,7 @@ class browser:
 
         if calc_tt_params:
             page.route(re.compile(r"(\.png)|(\.jpeg)|(\.mp4)|(x-expire)"), process)
-            page.goto(kwargs.get('default_url', 'https://www.tiktok.com/@redbull'), wait_until='load')
+            page.goto(kwargs.get('default_url', 'https://www.tiktok.com/@redbull'), wait_until='load', timeout=50000)
 
         verifyFp = "".join(
             random.choice(
