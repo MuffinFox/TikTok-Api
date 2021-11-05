@@ -793,7 +793,7 @@ class TikTokApi:
         * userID: The userID of the user, which TikTok assigns
 
             You can find this from utilizing other methods or
-            just use by_username to find it.
+            just use by_username to find it. (not needed)
         * secUID: The secUID of the user, which TikTok assigns
 
             You can find this from utilizing other methods or
@@ -859,8 +859,9 @@ class TikTokApi:
                 realCount = count - len(response)
                 cursor = res["cursor"]
         except Exception as e:
-            logging.error('Fetched {} until {} because {}'.format(len(response), cursor, str(e)))
-            raise e
+            if len(response) == 0:
+                logging.error('Fetched {} until {} because {}'.format(len(response), cursor, str(e)))
+                raise e
         finally:
             try:
                 context.close()
@@ -1142,8 +1143,9 @@ class TikTokApi:
                 realCount = count - len(response)
                 cursor = res["cursor"]
         except Exception as e:
-            logging.error('Fetched {} until {} because {}'.format(len(response), cursor, str(e)))
-            raise e
+            if len(response) == 0:
+                logging.error('Fetched {} until {} because {}'.format(len(response), cursor, str(e)))
+                raise e
         finally:
             try:
                 context.close()
