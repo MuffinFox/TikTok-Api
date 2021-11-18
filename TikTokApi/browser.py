@@ -284,6 +284,21 @@ class browser:
             context
         )
 
+    def url_open(self, url):
+        def process(route):
+            route.abort()
+
+        context = self.create_context()
+        page = context.new_page()
+
+        page.route(re.compile(r"(\.png)|(\.jpeg)|(\.mp4)|(x-expire)"), process)
+        page.goto(url, wait_until='load')
+        content = page.content()
+
+        context.close()
+
+        return content
+
     def sign_url_open_page(self, url, verify_fp, device_id, page, calc_tt_params):
 
         url = '{}&verifyFp={}&device_id={}'.format(url, verify_fp, device_id)

@@ -1553,39 +1553,16 @@ class TikTokApi:
         ##### Parameters
         * username: The username of the user
         """
-        (
-            region,
-            language,
-            proxy,
-            maxCount,
-            device_id,
-        ) = self.__process_kwargs__(kwargs)
-        r = requests.get(
-            "https://tiktok.com/@{}?lang=en".format(quote(username)),
-            headers={
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-                "authority": "www.tiktok.com",
-                "path": "/@{}".format(quote(username)),
-                "Accept-Encoding": "gzip, deflate",
-                "Connection": "keep-alive",
-                "Host": "www.tiktok.com",
-                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36",
-            },
-            proxies=self.__format_proxy(kwargs.get("proxy", None)),
-            cookies=self.get_cookies(**kwargs),
-            **self.requests_extra_kwargs,
-        )
-
-        t = r.text
-
+        content = None
         try:
-            j_raw = self.__extract_tag_contents(r.text)
+            content = self.browser.url_open('https://www.tiktok.com/{}'.format(username))
+            j_raw = self.__extract_tag_contents(content)
         except IndexError:
             if not t:
                 logging.error("Tiktok response is empty")
             else:
                 logging.error("Tiktok response: \n " + t)
-            raise TikTokCaptchaError()
+            raise TikTokCaptchaError() 
 
         user = json.loads(j_raw)["props"]["pageProps"]
 
