@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import random
+import re
 import string
 import time
 from urllib.parse import quote, urlencode
@@ -1558,11 +1559,11 @@ class TikTokApi:
             content = self.browser.url_open('https://www.tiktok.com/{}'.format(username))
             j_raw = self.__extract_tag_contents(content)
         except IndexError:
-            if not t:
+            if not content:
                 logging.error("Tiktok response is empty")
             else:
-                logging.error("Tiktok response: \n " + t)
-            raise TikTokCaptchaError() 
+                logging.error("Tiktok response: \n " + content)
+            raise TikTokCaptchaError()
 
         user = json.loads(j_raw)["props"]["pageProps"]
 
@@ -1979,14 +1980,23 @@ class TikTokApi:
         return urlencode(query)
 
     def __extract_tag_contents(self, html):
-        nonce_start = '<head nonce="'
-        nonce_end = '">'
-        nonce = html.split(nonce_start)[1].split(nonce_end)[0]
-        j_raw = html.split(
-            '<script id="__NEXT_DATA__" type="application/json" nonce="%s" crossorigin="anonymous">'
-            % nonce
-        )[1].split("</script>")[0]
-        return j_raw
+        next_json = re.search(r'id=\"__NEXT_DATA__\"\s+type=\"application\/json\"\s*[^>]+>\s*(?P<next_data>[^<]+)',
+                              html)
+        if next_json:
+            nonce_start = '<head nonce="'
+            nonce_end = '">'
+            nonce = html.split(nonce_start)[1].split(nonce_end)[0]
+            j_raw = html.split(
+                '<script id="__NEXT_DATA__" type="application/json" nonce="%s" crossorigin="anonymous">'
+                % nonce
+            )[1].split("</script>")[0]
+            return j_raw
+        else:
+            sigi_json = re.search(r'>\s*window\[[\'"]SIGI_STATE[\'"]\]\s*=\s*(?P<sigi_state>{.+});', html)
+            if sigi_json:
+                return sigi_json.group(1)
+            else:
+                raise Exception('no json found')
 
     # Process the kwargs
     def __process_kwargs__(self, kwargs):
