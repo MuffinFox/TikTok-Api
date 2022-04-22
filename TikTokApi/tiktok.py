@@ -1556,7 +1556,25 @@ class TikTokApi:
         """
         content = None
         try:
-            content = self.browser.url_open('https://www.tiktok.com/{}'.format(username))
+            if username[0] == '@':
+                username = username[1:]
+
+            quoted_username = quote(username)
+            r = requests.get(
+                "https://tiktok.com/@{}?lang=en".format(quoted_username),
+                headers={
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                    "path": "/@{}".format(quoted_username),
+                    "Accept-Encoding": "gzip, deflate",
+                    "Connection": "keep-alive",
+                    "User-Agent": self.userAgent,
+                },
+                cookies=self.get_cookies(**kwargs),
+                proxies=self.__format_proxy(kwargs.get('proxy')),
+                **self.requests_extra_kwargs
+            )
+
+            content = r.text
             j_raw = self.__extract_tag_contents(content)
         except IndexError:
             if not content:
