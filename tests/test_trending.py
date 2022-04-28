@@ -1,12 +1,11 @@
 from TikTokApi import TikTokApi
 import os
 
-api = TikTokApi.get_instance(
-    custom_verifyFp=os.environ.get("verifyFp", None), use_test_endpoints=True
-)
 
+def test_trending_videos():
+    with TikTokApi(custom_verify_fp=os.environ.get("verifyFp", None)) as api:
+        count = 0
+        for video in api.trending.videos(count=100):
+            count += 1
 
-def test_trending():
-    assert abs(len(api.trending(5)) - 5) <= 2
-    assert abs(len(api.trending(10)) - 10) <= 2
-    assert abs(len(api.trending(20)) - 20) <= 2
+        assert count >= 100
