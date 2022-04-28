@@ -299,6 +299,35 @@ class browser:
 
         return content
 
+    def sign_static_url_open_page(self, url, page, calc_tt_params):
+
+        evaluatedPage = page.evaluate(
+            '''() => {
+            var url = "'''
+            + url
+            + """"
+            var token = window.byted_acrawler.sign({url: url});
+
+            return token;
+            }"""
+        )
+
+        if calc_tt_params:
+
+            tt_params = page.evaluate(
+                '''() => {
+                    return window.genXTTParams(''' + json.dumps(dict(parse_qsl(splitquery(url)[1]))) + ''');
+
+                }'''
+            )
+
+        return (
+            None,
+            None,
+            evaluatedPage,
+            tt_params
+        )
+
     def sign_url_open_page(self, url, verify_fp, device_id, page, calc_tt_params):
 
         url = '{}&verifyFp={}&device_id={}'.format(url, verify_fp, device_id)

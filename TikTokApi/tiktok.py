@@ -207,6 +207,95 @@ class TikTokApi:
         return self.browser.sign_url_open_context(calc_tt_params=kwargs.get('send_tt_params'),
                                                   **kwargs)
 
+    def get_data_multi_static(self, static_url, url, page, **kwargs) -> dict:
+        """
+        experimental fetch using static url and mutated params in x-tt-params
+        """
+        (
+            region,
+            language,
+            proxy,
+            maxCount,
+            device_id,
+        ) = self.__process_kwargs__(kwargs)
+
+        if self.proxy is not None:
+            proxy = self.proxy
+
+        tt_params = None
+
+        if self.signer_url is None:
+            verify_fp, device_id, signature, tt_params = self.browser.sign_static_url_open_page(
+                url=url,
+                page=page,
+                calc_tt_params=True
+            )
+            userAgent = self.browser.userAgent
+            referrer = self.browser.referrer
+
+        def query(url):
+
+            r = requests.get(
+                static_url,
+                headers={
+                    "authority": "m.tiktok.com",
+                    "method": "GET",
+                    "path": url.split("tiktok.com")[1],
+                    "scheme": "https",
+                    "accept": "application/json, text/plain, */*",
+                    "accept-encoding": "gzip, deflate, br",
+                    "accept-language": "en-US,en;q=0.9",
+                    "origin": referrer,
+                    "referer": referrer,
+                    "sec-fetch-dest": "empty",
+                    "sec-fetch-mode": "cors",
+                    "sec-fetch-site": "same-site",
+                    "sec-gpc": "1",
+                    "user-agent": userAgent,
+                    # "x-secsdk-csrf-token": csrf_token,
+                    "x-tt-params": tt_params
+                },
+                cookies=self.get_cookies(**kwargs),
+                proxies=self.__format_proxy(proxy),
+                **self.requests_extra_kwargs,
+            )
+            try:
+                json = r.json()
+                if (
+                        json.get("type") == "verify"
+                        or json.get("verifyConfig", {}).get("type", "") == "verify"
+                ):
+                    logging.error(
+                        "Tiktok wants to display a catcha. Response is:\n" + r.text
+                    )
+                    logging.error(self.get_cookies(**kwargs))
+                    raise TikTokCaptchaError()
+                if json.get("statusCode", 200) == 10201:
+                    # Invalid Entity
+                    raise TikTokNotFoundError(
+                        "TikTok returned a response indicating the entity is invalid"
+                    )
+                if json.get("statusCode", 200) == 10219:
+                    # not available in this region
+                    raise TikTokNotAvailableError(
+                        "Content not available for this region"
+                    )
+
+                return r.json()
+            except ValueError as e:
+                text = r.text
+                logging.error("TikTok response: " + text)
+                if len(text) == 0:
+                    raise EmptyResponseError(
+                        "Empty response from Tiktok to " + url
+                    ) from None
+                else:
+                    logging.error("Converting response to JSON failed")
+                    logging.error(e)
+                    raise JSONDecodeFailure() from e
+
+        return query(url)
+
     def get_data_multi(self, url, verify_fp, device_id, page, send_tt_params=False, **kwargs) -> dict:
         """Makes requests to TikTok and returns their JSON.
 
@@ -310,9 +399,7 @@ class TikTokApi:
                     logging.error(e)
                     raise JSONDecodeFailure() from e
 
-
         return query(url)
-
 
     def get_data(self, **kwargs) -> dict:
         """Makes requests to TikTok and returns their JSON.
@@ -814,12 +901,12 @@ class TikTokApi:
             device_id,
         ) = self.__process_kwargs__(kwargs)
         kwargs["custom_device_id"] = device_id
+
+        static_url = kwargs.get('static_url',
+                                'https://m.tiktok.com/api/post/item_list/?aid=1988&app_language=en&app_name=tiktok_web&battery_info=1&browser_language=en-US&browser_name=Mozilla&browser_online=true&browser_platform=Win32&browser_version=5.0%20%28Windows%20NT%2010.0%3B%20Win64%3B%20x64%29%20AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20Chrome%2F98.0.4758.102%20Safari%2F537.36%20Edg%2F98.0.1108.62&channel=tiktok_web&cookie_enabled=true&device_id=7002566096994190854&device_platform=web_pc&focus_state=true&from_page=user&history_len=2&is_fullscreen=false&is_page_visible=true&os=windows&priority_region=RO&referer=&region=RO&root_referer&screen_height=1080&screen_width=1920&tz_name=Europe%2FBucharest&verifyFp=verify_dca8729afe5c502257ed30b0b070dbdb&webcast_language=en&msToken=ke4xktLgsxyAhsw7mGoAII-6L3--7SZyUDxD7M1_-TNM_2bSagox_yzIeYOpoBC-kPlNMdT-9trNOv3X7q4iLqrHyHY8_p5cheQ-GCrOGnAPjgrgb6bNGgX1H03HwC5q-mZXBzgQ&X-Bogus=DFSzswVLOezANCYfS5qBc2XyYJA4&_signature=_02B4Z6wo00001WyqqDQAAIDATwuGmbdoOXlsqqyAADk7e9')
         response = []
 
         (verify_fp, device_id, page, context) = self.get_data_open(send_tt_params=True, **kwargs)
-
-        kwargs['custom_verifyFp'] = verify_fp
-        kwargs['custom_device_id'] = device_id
 
         try:
             while len(response) < count:
@@ -842,8 +929,9 @@ class TikTokApi:
                     BASE_URL, self.__add_url_params__(), urlencode(query)
                 )
 
-                res = self.get_data_multi(url=api_url, verify_fp=verify_fp, device_id=device_id,
-                                          page=page, send_tt_params=True, **kwargs)
+                res = self.get_data_multi_static(
+                    static_url=static_url, url=api_url,
+                    page=page, **kwargs)
 
                 try:
                     for t in res["items"]:
