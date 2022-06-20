@@ -633,7 +633,7 @@ class TikTokApi:
             api_url = "{}api/recommend/item_list/?{}&{}".format(
                 BASE_URL, self.__add_url_params__(), urlencode(query)
             )
-            res = self.get_data(url=api_url, **kwargs)
+            res = self.get_data(url=api_url, send_tt_params=True, **kwargs)
             for t in res.get("itemList", []):
                 response.append(t)
 
@@ -1637,6 +1637,58 @@ class TikTokApi:
         return self.get_user(username, **kwargs)["userInfo"]["user"]
 
     def get_user(self, username, **kwargs) -> dict:
+        """Gets the full exposed user object
+
+        ##### Parameters
+        * username: The username of the user
+        """
+        content = None
+        try:
+            if username[0] == '@':
+                username = username[1:]
+
+            quoted_username = quote(username)
+            query = {
+                "unqiueId": username
+            }
+            api_url = "{}user/detail/?{}&{}".format(
+                BASE_URL, self.__add_url_params__(), urlencode(query)
+            )
+            res = []
+
+            r = requests.get(
+                "https://tiktok.com/@{}?lang=en".format(quoted_username),
+                headers={
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                    "path": "/@{}".format(quoted_username),
+                    "Accept-Encoding": "gzip, deflate",
+                    "Connection": "keep-alive",
+                    "User-Agent": self.userAgent,
+                },
+                cookies=self.get_cookies(**kwargs),
+                proxies=self.__format_proxy(kwargs.get('proxy')),
+                **self.requests_extra_kwargs
+            )
+
+            content = r.text
+            j_raw = self.__extract_tag_contents(content)
+        except IndexError:
+            if not content:
+                logging.error("Tiktok response is empty")
+            else:
+                logging.error("Tiktok response: \n " + content)
+            raise TikTokCaptchaError()
+
+        user = json.loads(j_raw)["props"]["pageProps"]
+
+        if user["serverCode"] == 404:
+            raise TikTokNotFoundError(
+                "TikTok user with username {} does not exist".format(username)
+            )
+
+        return user
+
+    def get_user_broken(self, username, **kwargs) -> dict:
         """Gets the full exposed user object
 
         ##### Parameters
