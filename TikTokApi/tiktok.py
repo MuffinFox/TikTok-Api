@@ -1637,56 +1637,54 @@ class TikTokApi:
         return self.get_user(username, **kwargs)["userInfo"]["user"]
 
     def get_user(self, username, **kwargs) -> dict:
-        """Gets the full exposed user object
+        (
+            region,
+            language,
+            proxy,
+            maxCount,
+            device_id,
+        ) = self.__process_kwargs__(kwargs)
+        kwargs["custom_device_id"] = device_id
 
-        ##### Parameters
-        * username: The username of the user
-        """
-        content = None
+        static_url = kwargs.get('static_url',
+                                "https://m.tiktok.com/api/user/detail/?aid=1988&app_language=en&app_name=tiktok_web&browser_language=en-US&browser_name=Mozilla&browser_online=true&browser_platform=Linux%20x86_64&browser_version=5.0%20(X11)&channel=tiktok_web&cookie_enabled=true&device_id=7089341815074047494&device_platform=web_pc&focus_state=true&from_page=user&history_len=3&is_fullscreen=false&is_page_visible=true&language=en&os=linux&priority_region=&referer=&region=AT&screen_height=1440&screen_width=2560&secUid=&tz_name=Europe%2FPrague&uniqueId=thefanco&webcast_language=en&msToken=j_yLX6FSdG6tUlDGsfHbTgZ4OEeXHP-ab-EDsm9ucUkKHHP5vlNu8-TEX3mjMNiu00PspOV8M-fh_WJh37pKaG1HoIRliCUzqlPJaI02rIwk_ZTcUXTBDm2rdt6-V6Een1hdPFPeR9aEfIU=&X-Bogus=DFSzsIVYLvvANcP/SvVhF7Lz-WtW&_signature=_02B4Z6wo000012X88AAAAIDAtzrlz6IO0Ktl.fSAALvhce"
+                                )
+
+        response = None
+
+        (verify_fp, device_id, page, context) = self.get_data_open(send_tt_params=True, **kwargs)
+
         try:
             if username[0] == '@':
                 username = username[1:]
 
             quoted_username = quote(username)
             query = {
-                "unqiueId": username
+                "uniqueId": username,
+                "secUid": '',
+                "region": region,
+                "language": language,
             }
-            api_url = "{}user/detail/?{}&{}".format(
+
+            api_url = "{}/api/user/detail/?{}&{}".format(
                 BASE_URL, self.__add_url_params__(), urlencode(query)
             )
-            res = []
 
-            r = requests.get(
-                "https://tiktok.com/@{}?lang=en".format(quoted_username),
-                headers={
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-                    "path": "/@{}".format(quoted_username),
-                    "Accept-Encoding": "gzip, deflate",
-                    "Connection": "keep-alive",
-                    "User-Agent": self.userAgent,
-                },
-                cookies=self.get_cookies(**kwargs),
-                proxies=self.__format_proxy(kwargs.get('proxy')),
-                **self.requests_extra_kwargs
-            )
+            res = self.get_data_multi_static(
+                static_url=static_url, url=api_url,
+                page=page, **kwargs)
 
-            content = r.text
-            j_raw = self.__extract_tag_contents(content)
-        except IndexError:
-            if not content:
-                logging.error("Tiktok response is empty")
-            else:
-                logging.error("Tiktok response: \n " + content)
-            raise TikTokCaptchaError()
+        except Exception as e:
+            if len(response) == 0:
+                logging.error('Fetched {} until {} because {}'.format(len(response), cursor, str(e)))
+                raise e
+        finally:
+            try:
+                context.close()
+            except:
+                logging.warning('Could not close context')
 
-        user = json.loads(j_raw)["props"]["pageProps"]
-
-        if user["serverCode"] == 404:
-            raise TikTokNotFoundError(
-                "TikTok user with username {} does not exist".format(username)
-            )
-
-        return user
+        return res
 
     def get_user_broken(self, username, **kwargs) -> dict:
         """Gets the full exposed user object
