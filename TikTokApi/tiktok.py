@@ -1674,15 +1674,14 @@ class TikTokApi:
                 static_url=static_url, url=api_url,
                 page=page, **kwargs)
 
-        except Exception as e:
-            if len(response) == 0:
-                logging.error('Fetched {} until {} because {}'.format(len(response), cursor, str(e)))
-                raise e
         finally:
             try:
                 context.close()
             except:
                 logging.warning('Could not close context')
+
+        if not res.get("userInfo", {}).get('secUid'):
+            raise TikTokNotFoundError()
 
         return res
 
