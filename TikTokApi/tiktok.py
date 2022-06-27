@@ -1680,7 +1680,7 @@ class TikTokApi:
             except:
                 logging.warning('Could not close context')
 
-        if not res.get("userInfo", {}).get('secUid'):
+        if not res.get("userInfo", {}).get("user", {}).get("secUid"):
             raise TikTokNotFoundError()
 
         return res
