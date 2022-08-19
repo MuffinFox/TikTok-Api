@@ -1648,7 +1648,6 @@ class TikTokApi:
 
         static_url = kwargs.get('static_url',
                                 "https://www.tiktok.com/api/user/detail/?aid=1988&app_language=en&app_name=tiktok_web&browser_language=en-US&browser_name=Mozilla&browser_online=true&browser_platform=Linux%20x86_64&browser_version=5.0%20%28X11%29&channel=tiktok_web&cookie_enabled=true&device_id=7089341815074047494&device_platform=web_pc&focus_state=true&from_page=user&history_len=8&is_fullscreen=false&is_page_visible=true&language=en&os=linux&priority_region=&referer=&region=AT&screen_height=1440&screen_width=2560&secUid=MS4wLjABAAAAhIB9TB7M0IlBNyge2BpxJL0dMV30Qd4kyRwZsYIBl_9cRDf8tMN2LQX_VnK-JfTh&tz_name=Europe%2FPrague&uniqueId=redbull&verifyFp=verify_l6keiwbq_bg0kZQav_jjhe_4wAy_BfoD_sofxVT2sc7pN&webcast_language=en&msToken=3kGzUmngAfJFPQIOgcdtz5IMjd8f3afiPlghEHhCP3jcOSV6wf9QiUbUdAYBg3ARX8RbcV7Dl2f0nWqfCWDQd4HpNnm2V9vrZESFyTOLZPxdsmcXsb-Daarp9H6jmPiKCq1eaStxa-dUC70=&X-Bogus=DFSzsIjub1hANxwrS6m8c6wim3-e&_signature=_02B4Z6wo00001-SmVZgAAIDBgFMTsCqiGvPkp1kAAJvg2a" 
-                                "https://www.tiktok.com/api/user/detail/?aid=1988&app_language=en&app_name=tiktok_web&browser_language=en-US&browser_name=Mozilla&browser_online=true&browser_platform=Linux%20x86_64&browser_version=5.0%20(X11)&channel=tiktok_web&cookie_enabled=true&device_id=7089341815074047494&device_platform=web_pc&focus_state=true&from_page=user&history_len=3&is_fullscreen=false&is_page_visible=true&language=en&os=linux&priority_region=&referer=&region=AT&screen_height=1440&screen_width=2560&secUid=&tz_name=Europe%2FPrague&uniqueId=thefanco&webcast_language=en&msToken=j_yLX6FSdG6tUlDGsfHbTgZ4OEeXHP-ab-EDsm9ucUkKHHP5vlNu8-TEX3mjMNiu00PspOV8M-fh_WJh37pKaG1HoIRliCUzqlPJaI02rIwk_ZTcUXTBDm2rdt6-V6Een1hdPFPeR9aEfIU=&X-Bogus=DFSzsIVYLvvANcP/SvVhF7Lz-WtW&_signature=_02B4Z6wo000012X88AAAAIDAtzrlz6IO0Ktl.fSAALvhce"
                                 )
 
         response = None
@@ -1667,7 +1666,7 @@ class TikTokApi:
                 "language": language,
             }
 
-            api_url = "{}/api/user/detail/?{}&{}".format(
+            api_url = "{}api/user/detail/?{}&{}".format(
                 BASE_URL, self.__add_url_params__(), urlencode(query)
             )
 
