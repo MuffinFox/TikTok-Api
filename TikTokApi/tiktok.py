@@ -401,6 +401,90 @@ class TikTokApi:
 
         return query(url)
 
+    def get_data_browser(self, **kwargs) -> dict:
+        """Makes requests to TikTok and returns their JSON using browser.
+        """
+
+        def extract_json(html):
+            """ parses json string from html pre tags, newlines are replaced """
+            content_json = re.search(r'[^>]+>\s*(?P<json_data>[^<]+)', html)
+            return json.loads(content_json.group(1).replace('\\n', ''))
+
+
+        (
+            region,
+            language,
+            proxy,
+            maxCount,
+            device_id,
+        ) = self.__process_kwargs__(kwargs)
+        kwargs["custom_device_id"] = device_id
+        if self.request_delay is not None:
+            time.sleep(self.request_delay)
+
+        if self.proxy is not None:
+            proxy = self.proxy
+
+        if kwargs.get("custom_verifyFp") == None:
+            if self.custom_verifyFp != None:
+                verifyFp = self.custom_verifyFp
+            else:
+                verifyFp = "verify_khr3jabg_V7ucdslq_Vrw9_4KPb_AJ1b_Ks706M8zIJTq"
+        else:
+            verifyFp = kwargs.get("custom_verifyFp")
+
+        send_tt_params = kwargs.get("send_tt_params", False)
+
+        if self.signer_url is None:
+            kwargs["custom_verifyFp"] = verifyFp
+            verify_fp, device_id, signature, tt_params, _, _ = self.browser.sign_url(calc_tt_params=send_tt_params,
+                                                                                     **kwargs)
+        else:
+            verify_fp, device_id, signature, userAgent, referrer = self.external_signer(
+                kwargs["url"],
+                custom_device_id=kwargs.get("custom_device_id"),
+                verifyFp=kwargs.get("custom_verifyFp", verifyFp),
+            )
+
+        query = {"verifyFp": verify_fp, "device_id": device_id, "_signature": signature}
+        url = "{}&{}".format(kwargs["url"], urlencode(query))
+
+        try:
+            content = self.browser.url_open(url)
+            json_data = extract_json(content)
+
+            if (
+                    json_data.get("type") == "verify"
+                    or json_data.get("verifyConfig", {}).get("type", "") == "verify"
+            ):
+                logging.error(
+                    "Tiktok wants to display a catcha. Response is:\n" + r.text
+                )
+                logging.error(self.get_cookies(**kwargs))
+                raise TikTokCaptchaError()
+            if json_data.get("statusCode", 200) == 10201:
+                # Invalid Entity
+                raise TikTokNotFoundError(
+                    "TikTok returned a response indicating the entity is invalid"
+                )
+            if json_data.get("statusCode", 200) == 10219:
+                # not available in this region
+                raise TikTokNotAvailableError(
+                    "Content not available for this region"
+                )
+
+            return json_data
+        except ValueError as e:
+            logging.error("TikTok response: " + content)
+            if len(content) == 0:
+                raise EmptyResponseError(
+                    "Empty response from Tiktok to " + url
+                ) from None
+            else:
+                logging.error("Converting response to JSON failed")
+                logging.error(e)
+                raise JSONDecodeFailure() from e
+
     def get_data(self, **kwargs) -> dict:
         """Makes requests to TikTok and returns their JSON.
 
@@ -707,19 +791,23 @@ class TikTokApi:
 
         response = []
         while len(response) < count:
+
             query = {
-                "discoverType": 1,
-                "needItemList": False,
                 "keyWord": search_term,
-                "offset": offset,
                 "count": count,
-                "useRecommend": False,
+                "trafficType": 0,
                 "language": "en",
+                "appId": 1233,
+                "from_page": "expansion",
             }
-            api_url = "{}api/discover/{}/?{}&{}".format(
-                BASE_URL, prefix, self.__add_url_params__(), urlencode(query)
+
+            # discover endpoint is not available anymore, but there is a new endpoint, only available on www.tiktok.com
+            api_url = "{}api/discover/expansion/{}/?{}&{}".format(
+                "https://www.tiktok.com", prefix, self.__add_url_params__(), urlencode(query)
             )
-            data = self.get_data(url=api_url, **kwargs)
+
+            # endpoint is unfortunately not working with requests / curl
+            data = self.get_data_browser(url=api_url, send_tt_params=False, **kwargs)
 
             if "userInfoList" in data.keys():
                 for x in data["userInfoList"]:
