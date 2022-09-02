@@ -473,9 +473,9 @@ class TikTokApi:
                     "Content not available for this region"
                 )
             if json_data.get("status_code", 200) == 4:
-                # Server is currently unavailable. Please try again later.
+                # Random error.. not really valid: Server is currently unavailable. Please try again later.
                 raise EmptyResponseError(
-                    json.data.get("status_msg", "Server is currently unavailable. Please try again later.")
+                    json_data.get("status_msg", "Server is currently unavailable. Please try again later.")
                 )
             return json_data
         except ValueError as e:
