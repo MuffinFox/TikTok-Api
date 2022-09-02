@@ -807,7 +807,7 @@ class TikTokApi:
 
             # discover endpoint is not available anymore, but there is a new endpoint, only available on www.tiktok.com
             api_url = "{}api/discover/expansion/{}/?{}&{}".format(
-                "https://www.tiktok.com", prefix, self.__add_url_params__(), urlencode(query)
+                "https://www.tiktok.com/", prefix, self.__add_url_params__(), urlencode(query)
             )
 
             # endpoint is unfortunately not working with requests / curl
