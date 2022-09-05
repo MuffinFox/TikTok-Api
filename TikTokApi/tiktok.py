@@ -427,36 +427,37 @@ class TikTokApi:
 
         if kwargs.get("custom_verifyFp") == None:
             if self.custom_verifyFp != None:
-                verifyFp = self.custom_verifyFp
+                verify_fp = self.custom_verifyFp
             else:
-                verifyFp = "verify_khr3jabg_V7ucdslq_Vrw9_4KPb_AJ1b_Ks706M8zIJTq"
+                verify_fp = "verify_khr3jabg_V7ucdslq_Vrw9_4KPb_AJ1b_Ks706M8zIJTq"
         else:
-            verifyFp = kwargs.get("custom_verifyFp")
+            verify_fp = kwargs.get("custom_verifyFp")
 
         send_tt_params = kwargs.get("send_tt_params", False)
 
-        if self.signer_url is None:
-            kwargs["custom_verifyFp"] = verifyFp
-            verify_fp, device_id, signature, tt_params, _, _ = self.browser.sign_url(calc_tt_params=send_tt_params,
-                                                                                     **kwargs)
-        else:
-            verify_fp, device_id, signature, userAgent, referrer = self.external_signer(
-                kwargs["url"],
-                custom_device_id=kwargs.get("custom_device_id"),
-                verifyFp=kwargs.get("custom_verifyFp", verifyFp),
-            )
+        if kwargs.get("sign_url", True):
+            if self.signer_url is None:
+                kwargs["custom_verifyFp"] = verify_fp
+                verify_fp, device_id, signature, tt_params, _, _ = self.browser.sign_url(calc_tt_params=send_tt_params,
+                                                                                         **kwargs)
+            else:
+                verify_fp, device_id, signature, userAgent, referrer = self.external_signer(
+                    kwargs["url"],
+                    custom_device_id=kwargs.get("custom_device_id"),
+                    verifyFp=kwargs.get("custom_verifyFp", verify_fp),
+                )
 
-        query = {"verifyFp": verify_fp, "device_id": device_id, "_signature": signature}
+            query = {"verifyFp": verify_fp, "device_id": device_id, "_signature": signature}
+        else:
+            query = {"verifyFp": verify_fp, "device_id": device_id}
+
         url = "{}&{}".format(kwargs["url"], urlencode(query))
 
         try:
             content = self.browser.url_open(url)
             json_data = extract_json(content)
 
-            if (
-                    json_data.get("type") == "verify"
-                    or json_data.get("verifyConfig", {}).get("type", "") == "verify"
-            ):
+            if json_data.get("type") == "verify" or json_data.get("verifyConfig", {}).get("type", "") == "verify":
                 logging.error(
                     "Tiktok wants to display a catcha. Response is:\n" + r.text
                 )
@@ -811,7 +812,7 @@ class TikTokApi:
             )
 
             # endpoint is unfortunately not working with requests / curl
-            data = self.get_data_browser(url=api_url, send_tt_params=False, **kwargs)
+            data = self.get_data_browser(url=api_url, send_tt_params=False, sign_url=False, **kwargs)
 
             if "userInfoList" in data.keys():
                 for x in data["userInfoList"]:
