@@ -265,10 +265,10 @@ class TikTokApi:
                         json.get("type") == "verify"
                         or json.get("verifyConfig", {}).get("type", "") == "verify"
                 ):
-                    logging.error(
+                    logging.debug(
                         "Tiktok wants to display a catcha. Response is:\n" + r.text
                     )
-                    logging.error(self.get_cookies(**kwargs))
+                    logging.debug(self.get_cookies(**kwargs))
                     raise TikTokCaptchaError()
                 if json.get("statusCode", 200) == 10201:
                     # Invalid Entity
@@ -284,14 +284,14 @@ class TikTokApi:
                 return r.json()
             except ValueError as e:
                 text = r.text
-                logging.error("TikTok response: " + text)
+                logging.debug("TikTok response: " + text)
                 if len(text) == 0:
                     raise EmptyResponseError(
                         "Empty response from Tiktok to " + url
                     ) from None
                 else:
-                    logging.error("Converting response to JSON failed")
-                    logging.error(e)
+                    logging.debug("Converting response to JSON failed")
+                    logging.debug(e)
                     raise JSONDecodeFailure() from e
 
         return query(url)
@@ -370,10 +370,10 @@ class TikTokApi:
                         json.get("type") == "verify"
                         or json.get("verifyConfig", {}).get("type", "") == "verify"
                 ):
-                    logging.error(
+                    logging.debug(
                         "Tiktok wants to display a catcha. Response is:\n" + r.text
                     )
-                    logging.error(self.get_cookies(**kwargs))
+                    logging.debug(self.get_cookies(**kwargs))
                     raise TikTokCaptchaError()
                 if json.get("statusCode", 200) == 10201:
                     # Invalid Entity
@@ -389,14 +389,14 @@ class TikTokApi:
                 return r.json()
             except ValueError as e:
                 text = r.text
-                logging.error("TikTok response: " + text)
+                logging.debug("TikTok response: " + text)
                 if len(text) == 0:
                     raise EmptyResponseError(
                         "Empty response from Tiktok to " + url
                     ) from None
                 else:
-                    logging.error("Converting response to JSON failed")
-                    logging.error(e)
+                    logging.debug("Converting response to JSON failed")
+                    logging.debug(e)
                     raise JSONDecodeFailure() from e
 
         return query(url)
@@ -458,10 +458,10 @@ class TikTokApi:
             json_data = extract_json(content)
 
             if json_data.get("type") == "verify" or json_data.get("verifyConfig", {}).get("type", "") == "verify":
-                logging.error(
+                logging.debug(
                     "Tiktok wants to display a catcha. Response is:\n" + r.text
                 )
-                logging.error(self.get_cookies(**kwargs))
+                logging.debug(self.get_cookies(**kwargs))
                 raise TikTokCaptchaError()
             if json_data.get("statusCode", 200) == 10201:
                 # Invalid Entity
@@ -480,14 +480,14 @@ class TikTokApi:
                 )
             return json_data
         except ValueError as e:
-            logging.error("TikTok response: " + content)
+            logging.debug("TikTok response: " + content)
             if len(content) == 0:
                 raise EmptyResponseError(
                     "Empty response from Tiktok to " + url
                 ) from None
             else:
-                logging.error("Converting response to JSON failed")
-                logging.error(e)
+                logging.debug("Converting response to JSON failed")
+                logging.debug(e)
                 raise JSONDecodeFailure() from e
 
     def get_data(self, **kwargs) -> dict:
@@ -576,10 +576,10 @@ class TikTokApi:
                 json.get("type") == "verify"
                 or json.get("verifyConfig", {}).get("type", "") == "verify"
             ):
-                logging.error(
+                logging.debug(
                     "Tiktok wants to display a catcha. Response is:\n" + r.text
                 )
-                logging.error(self.get_cookies(**kwargs))
+                logging.debug(self.get_cookies(**kwargs))
                 raise TikTokCaptchaError()
             if json.get("statusCode", 200) == 10201:
                 # Invalid Entity
@@ -595,14 +595,16 @@ class TikTokApi:
             return r.json()
         except ValueError as e:
             text = r.text
-            logging.error("TikTok response: " + text)
+
+            logging.debug("TikTok response: " + text)
+
             if len(text) == 0:
                 raise EmptyResponseError(
                     "Empty response from Tiktok to " + url
                 ) from None
             else:
-                logging.error("Converting response to JSON failed")
-                logging.error(e)
+                logging.debug("Converting response to JSON failed")
+                logging.debug(e)
                 raise JSONDecodeFailure() from e
 
     def get_cookies(self, **kwargs):
@@ -1042,7 +1044,7 @@ class TikTokApi:
                 cursor = res["cursor"]
         except Exception as e:
             if len(response) == 0:
-                logging.error('Fetched {} until {} because {}'.format(len(response), cursor, str(e)))
+                logging.debug('Fetched {} until {} because {}'.format(len(response), cursor, str(e)))
                 raise e
         finally:
             try:
@@ -1326,7 +1328,7 @@ class TikTokApi:
                 cursor = res["cursor"]
         except Exception as e:
             if len(response) == 0:
-                logging.error('Fetched {} until {} because {}'.format(len(response), cursor, str(e)))
+                logging.debug('Fetched {} until {} because {}'.format(len(response), cursor, str(e)))
                 raise e
         finally:
             try:
@@ -1668,9 +1670,9 @@ class TikTokApi:
             j_raw = self.__extract_tag_contents(r.text)
         except IndexError:
             if not t:
-                logging.error("TikTok response is empty")
+                logging.debug("TikTok response is empty")
             else:
-                logging.error("TikTok response: \n " + t)
+                logging.debug("TikTok response: \n " + t)
             raise TikTokCaptchaError()
 
         data = json.loads(j_raw)["props"]["pageProps"]
@@ -1808,9 +1810,9 @@ class TikTokApi:
             j_raw = self.__extract_tag_contents(content)
         except IndexError:
             if not content:
-                logging.error("Tiktok response is empty")
+                logging.debug("Tiktok response is empty")
             else:
-                logging.error("Tiktok response: \n " + content)
+                logging.debug("Tiktok response: \n " + content)
             raise TikTokCaptchaError()
 
         user = json.loads(j_raw)["props"]["pageProps"]
@@ -2164,7 +2166,7 @@ class TikTokApi:
             return r.text.split('"secUid":"')[1].split('","secret":')[0]
         except IndexError as e:
             logging.info(r.text)
-            logging.error(e)
+            logging.debug(e)
             raise Exception(
                 "Retrieving the user secUid failed. Likely due to TikTok wanting captcha validation. Try to use a proxy."
             )
