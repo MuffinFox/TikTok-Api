@@ -238,19 +238,7 @@ class TikTokApi:
             r = requests.get(
                 static_url,
                 headers={
-                    "authority": "m.tiktok.com",
                     "method": "GET",
-                    "path": url.split("tiktok.com")[1],
-                    "scheme": "https",
-                    "accept": "application/json, text/plain, */*",
-                    "accept-encoding": "gzip, deflate, br",
-                    "accept-language": "en-US,en;q=0.9",
-                    "origin": referrer,
-                    "referer": referrer,
-                    "sec-fetch-dest": "empty",
-                    "sec-fetch-mode": "cors",
-                    "sec-fetch-site": "same-site",
-                    "sec-gpc": "1",
                     "user-agent": userAgent,
                     # "x-secsdk-csrf-token": csrf_token,
                     "x-tt-params": tt_params
