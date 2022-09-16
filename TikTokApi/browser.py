@@ -59,6 +59,7 @@ class browser:
             "handle_sigint": True,
             "handle_sigterm": True,
             "handle_sighup": True,
+            "ignore_default_args": ["--mute-audio", "--hide-scrollbars"]
         }
 
         if self.proxy is not None:
@@ -79,7 +80,7 @@ class browser:
             self.options["executablePath"] = self.executablePath
 
         try:
-            self.browser = get_playwright().webkit.launch(
+            self.browser = get_playwright().chromium.launch(
                 args=self.args, **self.options
             )
         except Exception as e:
@@ -120,6 +121,7 @@ class browser:
         iphone["has_touch"] = random.randint(1, 2) == 1
 
         iphone['bypass_csp'] = True
+        iphone["user_agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53"
 
         context = self.browser.new_context(**iphone)
         if set_useragent:
