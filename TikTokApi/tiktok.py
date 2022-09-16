@@ -2224,7 +2224,6 @@ class TikTokApi:
 
             sigi_json = re.search(r'id=\"SIGI_STATE\"\s+type=\"application\/json\">\s*(?P<sigi_data>[^<]+)',
                                   html)
-            print(sigi_json)
             if sigi_json:
                 return sigi_json.group(1)
             else:
