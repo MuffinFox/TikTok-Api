@@ -1768,7 +1768,7 @@ class TikTokApi:
 
         return res
 
-    def get_user_broken(self, username, **kwargs) -> dict:
+    def get_user_from_html(self, username, **kwargs) -> dict:
         """Gets the full exposed user object
 
         ##### Parameters
@@ -1780,21 +1780,10 @@ class TikTokApi:
                 username = username[1:]
 
             quoted_username = quote(username)
-            r = requests.get(
-                "https://tiktok.com/@{}?lang=en".format(quoted_username),
-                headers={
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-                    "path": "/@{}".format(quoted_username),
-                    "Accept-Encoding": "gzip, deflate",
-                    "Connection": "keep-alive",
-                    "User-Agent": self.userAgent,
-                },
-                cookies=self.get_cookies(**kwargs),
-                proxies=self.__format_proxy(kwargs.get('proxy')),
-                **self.requests_extra_kwargs
-            )
 
-            content = r.text
+            url = "https://tiktok.com/@{}?lang=en".format(quoted_username)
+            content = self.browser.url_open(url)
+
             j_raw = self.__extract_tag_contents(content)
         except IndexError:
             if not content:
@@ -1803,14 +1792,16 @@ class TikTokApi:
                 logging.debug("Tiktok response: \n " + content)
             raise TikTokCaptchaError()
 
-        user = json.loads(j_raw)["props"]["pageProps"]
+        page_data = json.loads(j_raw)
 
-        if user["serverCode"] == 404:
+        if page_data["UserPage"]["statusCode"] == 10221:
             raise TikTokNotFoundError(
                 "TikTok user with username {} does not exist".format(username)
             )
 
-        return user
+        user = {"stats": page_data["UserModule"]["stats"].get(username), "user": page_data["UserModule"]["users"].get(username)}
+
+        return {"userInfo": user}
 
     def get_suggested_users_by_id(
         self, userId="6745191554350760966", count=30, **kwargs
@@ -2230,7 +2221,10 @@ class TikTokApi:
             )[1].split("</script>")[0]
             return j_raw
         else:
-            sigi_json = re.search(r'>\s*window\[[\'"]SIGI_STATE[\'"]\]\s*=\s*(?P<sigi_state>{.+});', html)
+
+            sigi_json = re.search(r'id=\"SIGI_STATE\"\s+type=\"application\/json\">\s*(?P<sigi_data>[^<]+)',
+                                  html)
+            print(sigi_json)
             if sigi_json:
                 return sigi_json.group(1)
             else:
