@@ -179,7 +179,7 @@ class browser:
         page = context.new_page()
 
         if calc_tt_params:
-            page.route(re.compile(r"(\.png)|(\.jpeg)|(\.mp4)|(x-expire)"), process)
+            page.route(re.compile(r"(\.png)|(\.jpeg)|(\.mp4)|(x-expire)|(video_mp4)"), process)
             page.goto(kwargs.get('default_url', 'https://www.tiktok.com/@redbull'), wait_until='load')
 
         verifyFp = "".join(
@@ -250,7 +250,7 @@ class browser:
         page = context.new_page()
 
         if calc_tt_params:
-            page.route(re.compile(r"(\.png)|(\.jpeg)|(\.mp4)|(x-expire)"), process)
+            page.route(re.compile(r"(\.png)|(\.jpeg)|(\.mp4)|(x-expire)|(video_mp4)"), process)
             page.goto(kwargs.get('default_url', 'https://www.tiktok.com/@redbull'), wait_until='load', timeout=50000)
 
         verifyFp = "".join(
@@ -293,7 +293,7 @@ class browser:
         context = self.create_context()
         page = context.new_page()
 
-        page.route(re.compile(r"(\.png)|(\.jpeg)|(\.mp4)|(x-expire)"), process)
+        page.route(re.compile(r"(\.png)|(\.jpeg)|(\.mp4)|(x-expire)|(video_mp4)"), process)
         page.goto(url, wait_until='load')
         content = page.content()
 
