@@ -294,7 +294,7 @@ class browser:
         page = context.new_page()
 
         page.route(re.compile(r"(\.png)|(\.jpeg)|(\.mp4)|(x-expire)|(video_mp4)"), process)
-        page.goto(url, wait_until='load')
+        page.goto(url, wait_until='load', timeout=10000)
         content = page.content()
 
         context.close()
