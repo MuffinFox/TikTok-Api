@@ -426,7 +426,7 @@ class TikTokApi:
         if kwargs.get("sign_url", True):
             if self.signer_url is None:
                 kwargs["custom_verifyFp"] = verify_fp
-                verify_fp, device_id, signature, tt_params, _, _ = self.browser.sign_url(calc_tt_params=send_tt_params,
+                verify_fp, device_id, signature, tt_params, _, _, _ = self.browser.sign_url(calc_tt_params=send_tt_params,
                                                                                          **kwargs)
             else:
                 verify_fp, device_id, signature, userAgent, referrer = self.external_signer(
@@ -511,7 +511,7 @@ class TikTokApi:
 
         if self.signer_url is None:
             kwargs["custom_verifyFp"] = verifyFp
-            verify_fp, device_id, signature, tt_params, _, _ = self.browser.sign_url(calc_tt_params=send_tt_params, **kwargs)
+            verify_fp, device_id, signature, tt_params, _, _, _ = self.browser.sign_url(calc_tt_params=send_tt_params, **kwargs)
             userAgent = self.browser.userAgent
             referrer = self.browser.referrer
         else:
@@ -537,24 +537,113 @@ class TikTokApi:
         r = requests.get(
             url,
             headers={
-                "authority": "m.tiktok.com",
-                "method": "GET",
-                "path": url.split("tiktok.com")[1],
-                "scheme": "https",
-                "accept": "application/json, text/plain, */*",
-                "accept-encoding": "gzip, deflate, br",
-                "accept-language": "en-US,en;q=0.9",
-                "origin": referrer,
-                "referer": referrer,
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-site",
-                "sec-gpc": "1",
                 "user-agent": userAgent,
                 "x-secsdk-csrf-token": csrf_token,
                 "x-tt-params": tt_params
             },
             cookies=self.get_cookies(**kwargs),
+            proxies=self.__format_proxy(proxy),
+            **self.requests_extra_kwargs,
+        )
+        try:
+            json = r.json()
+            if (
+                json.get("type") == "verify"
+                or json.get("verifyConfig", {}).get("type", "") == "verify"
+            ):
+                logging.debug(
+                    "Tiktok wants to display a catcha. Response is:\n" + r.text
+                )
+                logging.debug(self.get_cookies(**kwargs))
+                raise TikTokCaptchaError()
+            if json.get("statusCode", 200) == 10201:
+                # Invalid Entity
+                raise TikTokNotFoundError(
+                    "TikTok returned a response indicating the entity is invalid"
+                )
+            if json.get("statusCode", 200) == 10219:
+                # not available in this region
+                raise TikTokNotAvailableError(
+                    "Content not available for this region"
+                )
+
+            return r.json()
+        except ValueError as e:
+            text = r.text
+
+            logging.debug("TikTok response: " + text)
+
+            if len(text) == 0:
+                raise EmptyResponseError(
+                    "Empty response from Tiktok to " + url
+                ) from None
+            else:
+                logging.debug("Converting response to JSON failed")
+                logging.debug(e)
+                raise JSONDecodeFailure() from e
+
+    def get_data_cookies(self, **kwargs) -> dict:
+        """ Makes requests to TikTok and returns their JSON.
+
+        another variant:
+
+        - signing
+        - takes cookies from signin
+        - no csrf
+
+        """
+        (
+            region,
+            language,
+            proxy,
+            maxCount,
+            device_id,
+        ) = self.__process_kwargs__(kwargs)
+        kwargs["custom_device_id"] = device_id
+        if self.request_delay is not None:
+            time.sleep(self.request_delay)
+
+        if self.proxy is not None:
+            proxy = self.proxy
+
+        if kwargs.get("custom_verifyFp") == None:
+            if self.custom_verifyFp != None:
+                verifyFp = self.custom_verifyFp
+            else:
+                verifyFp = "verify_khr3jabg_V7ucdslq_Vrw9_4KPb_AJ1b_Ks706M8zIJTq"
+        else:
+            verifyFp = kwargs.get("custom_verifyFp")
+
+        tt_params = None
+        send_tt_params = kwargs.get("send_tt_params", False)
+        fetch_csrf = kwargs.get("fetch_csrf", False)
+
+        if self.signer_url is None:
+            kwargs["custom_verifyFp"] = verifyFp
+            verify_fp, device_id, signature, tt_params, _, _, cookies = self.browser.sign_url(calc_tt_params=send_tt_params, **kwargs)
+            userAgent = self.browser.userAgent
+            referrer = self.browser.referrer
+        else:
+            verify_fp, device_id, signature, userAgent, referrer = self.external_signer(
+                kwargs["url"],
+                custom_device_id=kwargs.get("custom_device_id"),
+                verifyFp=kwargs.get("custom_verifyFp", verifyFp),
+            )
+
+        query = {"verifyFp": verify_fp, "device_id": device_id, "_signature": signature}
+        url = "{}&{}".format(kwargs["url"], urlencode(query))
+        xuserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.53"
+        additional_headers = {}
+
+        cookie_str = "; ".join(["{}={}".format(c.get("name"), c.get("value")) for c in cookies])
+        cookies = {c.get("name"): c.get("value") for c in cookies}
+        r = requests.get(
+            url,
+            headers={
+                "user-agent": userAgent,
+                **additional_headers
+            },
+            cookies=cookies,
             proxies=self.__format_proxy(proxy),
             **self.requests_extra_kwargs,
         )
@@ -736,7 +825,36 @@ class TikTokApi:
         * count: The number of users to return
             Note: maximum is around 28 for this type of endpoint.
         """
-        return self.discover_type(search_term, prefix="user", count=count, **kwargs)
+        (
+            region,
+            language,
+            proxy,
+            maxCount,
+            device_id,
+        ) = self.__process_kwargs__(kwargs)
+        kwargs["custom_device_id"] = device_id
+
+        query = {
+            "keyword": search_term,
+            "offset": 0,
+            "language": "en",
+            "app_name": "tiktok_web",
+            "from_page": "search",
+            "history_len": 3
+        }
+
+        # discover endpoint is not available anymore, but there is a new endpoint
+        api_url = "{}api/search/general/full/?{}&{}".format(
+            "https://www.tiktok.com/", self.__add_url_params__(), urlencode(query)
+        )
+
+        # endpoint requires cookies
+        data = self.get_data_cookies(url=api_url, send_tt_params=True, sign_url=True, **kwargs)
+        for d in data.get("data"):
+            if d.get("type") == 4:
+                return d.get("user_list")
+
+        raise EmptyResponseError("user_list missing in response")
 
     def search_for_music(self, search_term, count=28, **kwargs) -> list:
         """Returns a list of music that match the search_term

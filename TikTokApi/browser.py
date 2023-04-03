@@ -229,6 +229,8 @@ class browser:
                 }'''
             )
 
+        cookies = page.context.cookies()
+
         if not kwargs.get('keep_open'):
             context.close()
 
@@ -238,7 +240,8 @@ class browser:
             evaluatedPage,
             tt_params,
             page,
-            context
+            context,
+            cookies
         )
 
     def sign_url_open_context(self, calc_tt_params=False, **kwargs):
