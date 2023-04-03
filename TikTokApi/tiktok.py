@@ -10,6 +10,7 @@ from urllib.parse import quote, urlencode
 import requests
 from playwright.sync_api import sync_playwright
 
+from .browser import get_playwright
 from .exceptions import *
 from .utilities import update_messager
 
