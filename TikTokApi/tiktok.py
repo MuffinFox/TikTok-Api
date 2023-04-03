@@ -160,7 +160,8 @@ class TikTokApi:
     def __del__(self):
         """A basic cleanup method, called automatically from the code"""
         try:
-            self.browser.clean_up()
+            pass
+            # self.browser.clean_up()
         except Exception:
             pass
         try:
